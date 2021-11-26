@@ -3,23 +3,41 @@ from math import log2
 
 
 class TreeNode:
-    def __init__(self, val=0, left=None, right=None):
+    def __init__(self, val, left=None, right=None):
         self.val = val
         self.left = left
         self.right = right
 
 
 class BinaryTree:
-    """Represent a binary tree as linked set of TreeNode instances"""
-
-    @overload
-    def __init__(self, root: TreeNode):
-        self.root: TreeNode = root
-
+    """Represent a binary tree as linked set of TreeNode instances.
+    Create and return binary tree from existing tree presented by root node
+    or by standard array representing.
+    """
 
     @overload
     def __init__(self, array_view: List[object]):
-        self.root: TreeNode = BinaryTree.__to_tree_node_view__(array_view)
+        """Create and return binary tree from standard array representing.
+
+        :param array_view: standard array representing of tree
+        """
+        ...
+
+    @overload
+    def __init__(self, root: TreeNode):
+        """Create and return binary tree from existing tree presented by root node.-
+
+        :param root: root of tree
+        """
+        ...
+
+    def __init__(self, value: [List[object] | TreeNode]):
+        if value is None:
+            raise ValueError("Can not create binary tree from None.")
+        elif type(value) == TreeNode:
+            self.__root = value
+        elif type(value) == List[object]:
+            self.__root: TreeNode = BinaryTree.__to_tree_node_view__(value)
 
     @staticmethod
     def __to_array_view__(root: TreeNode) -> List[object]:
@@ -69,7 +87,7 @@ class BinaryTree:
         return result
 
     @staticmethod
-    def __to_tree_node_view__(array_view: List[object]) -> TreeNode:
+    def __to_tree_node_view__(array_view: List[object]) -> [TreeNode | None]:
         """Return root of tree presented as linked set of TreeNode instances.
 
         :param array_view: tree in array view
@@ -83,4 +101,10 @@ class BinaryTree:
         lines_count = log2(len(array_view))
         if lines_count != int(lines_count):
             raise ValueError('Correct argument array_view must have length equal to a power of 2.')
-        int
+
+    def __repr__(self):
+        return repr(self.__to_array_view__(self.__root))
+
+    def __contains__(self, y): # real signature unknown; restored from __doc__
+        """ x.__contains__(y) <==> y in x. """
+        raise NotImplementedError
