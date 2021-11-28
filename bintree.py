@@ -1,9 +1,10 @@
 from typing import List, overload
-from math import log2
 
 
 class TreeNode:
     def __init__(self, val, left=None, right=None):
+        # if val is None:
+        #     raise ValueError('Can not create TreeNode with val = None')
         self.val = val
         self.left = left
         self.right = right
@@ -13,6 +14,9 @@ class BinaryTree:
     """Represent a binary tree as linked set of TreeNode instances.
     Create and return binary tree from existing tree presented by root node
     or by standard array representing.
+
+    b = BinaryTree(TreeNode(0, None, TreeNode(1))
+    c = BinaryTree([1] + [2, 3] + [4, 5, None, 9])
     """
 
     @overload
@@ -98,13 +102,75 @@ class BinaryTree:
             return None
         if not isinstance(array_view, List):
             raise TypeError('Argument array_view must be List[object].')
-        lines_count = log2(len(array_view))
-        if lines_count != int(lines_count):
-            raise ValueError('Correct argument array_view must have length equal to a power of 2.')
+        if len(array_view) == 0:
+            return None
+        # Check count of items
+        length = len(array_view)
+        line_count = 0
+        cur_sum = 0
+        while length != cur_sum:
+            line_count += 1
+            cur_sum += 2 ** (line_count - 1)
+            if cur_sum > length:
+                raise ValueError('Correct argument array_view must have '
+                                 'length equal sum of 2**i where i from 0 to some whole number')
+
+        # Split by tree lines
+        lines: List[List[object]] = [array_view[2 ** s - 1: 2 * (2 ** s - 1) + 1]
+                                     for s in range(1, line_count)]
+        root: TreeNode = TreeNode(array_view[0])
+        prev_tn_line: List[TreeNode] = [root]
+        for line in lines:
+            current_item_i = 0
+            new_tn_line: List[TreeNode] = []
+            for ptn in prev_tn_line:
+                if ptn is None:
+                    new_tn_line += [None, None]
+                    current_item_i += 2
+                    continue
+                left_item = line[current_item_i]
+                right_item = line[current_item_i + 1]
+                ptn.left = None if left_item is None else TreeNode(left_item)
+                ptn.right = None if right_item is None else TreeNode(right_item)
+                current_item_i += 2
+                new_tn_line += [ptn.left, ptn.right]
+            prev_tn_line = new_tn_line
+        return root
+
+    def diameter(self) -> int:
+        """Return diameter of binary tree.
+
+        The diameter of a binary tree is the length of the longest path between any two nodes in a
+        tree. This path may or may not pass through the root. The length of a path between two
+        nodes is represented by the number of edges between them."""
+        max_way_length = 0
+
+        # Return (longest_way, longest_branch).
+        # longest_way = length of the longest path throw this node.
+        # longest_branch = length of the longest patch from this node to some further sheet.
+        def node_processing(node: TreeNode) -> (int, int):
+            nonlocal max_way_length
+            l_w_l, l_b_l, l_w_r, l_b_r = 0, 0, 0, 0
+            if not node.left and not node.right:
+                # print(node.val, "->", 0, 0)
+                return 0, 0
+            if node.left:
+                l_w_l, l_b_l = node_processing(node.left)
+            if node.right:
+                l_w_r, l_b_r = node_processing(node.right)
+            longest_way = ((l_b_l + 1) if node.left else 0) + ((l_b_r + 1) if node.right else 0)
+            # print("longest_way", longest_way)
+            # print("Solution.max_way_length", max_way_length)
+            max_way_length = max(max_way_length, longest_way)
+            longest_branch = max(l_b_l, l_b_r) + 1
+            # print(node.val, "->", longest_way, longest_branch)
+            return longest_way, longest_branch
+
+        node_processing(self.__root)
+        return max_way_length
 
     def __repr__(self):
-        return repr(self.__to_array_view__(self.__root))
+        return str(self)
 
-    def __contains__(self, y): # real signature unknown; restored from __doc__
-        """ x.__contains__(y) <==> y in x. """
-        raise NotImplementedError
+    def __str__(self):
+        return str(self.__to_array_view__(self.__root))
