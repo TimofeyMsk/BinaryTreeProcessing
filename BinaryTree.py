@@ -15,7 +15,7 @@ class BinaryTree:
     Create and return binary tree from existing tree presented by root node
     or by standard array representing.
 
-    b = BinaryTree(TreeNode(0, None, TreeNode(1))
+    b = BinaryTree(TreeNode(0, None, TreeNode(1)) \n
     c = BinaryTree([1] + [2, 3] + [4, 5, None, 9])
     """
 
@@ -38,10 +38,14 @@ class BinaryTree:
     def __init__(self, value: [List[object] | TreeNode]):
         if value is None:
             raise ValueError("Can not create binary tree from None.")
-        elif type(value) == TreeNode:
+        elif isinstance(value, TreeNode):
             self.__root = value
-        elif type(value) == List[object]:
+        elif isinstance(value, List):
             self.__root: TreeNode = BinaryTree.__to_tree_node_view__(value)
+
+    def get_root(self) -> TreeNode:
+        """Return root node."""
+        return self.__root
 
     @staticmethod
     def __to_array_view__(root: TreeNode) -> List[object]:
@@ -66,29 +70,36 @@ class BinaryTree:
         :raises: TypeError if root or other node is not instance TreeNode class.
         """
 
-        def check_node(node_: TreeNode):
-            if not isinstance(node_, TreeNode):
-                raise TypeError('Nodes in tree must be TreeNode instances.')
-            if node_.val is None:
-                raise ValueError('Node.val must not be None')
 
-        if root is None:
+    @staticmethod
+    def is_valid_node(node_: TreeNode):
+        if not isinstance(node_, TreeNode):
+            raise TypeError('Nodes in tree must be TreeNode instances.')
+        if node_.val is None:
+            raise ValueError('Node.val must not be None')
+
+    def to_levels(self):
+        """Return tree node values by levels"""
+        if self.__root is None:
             return []
-        check_node(root)
-        result: List[object] = []
-        current_line_nodes: List[TreeNode] = [root]
+        BinaryTree.is_valid_node(self.__root)
+        value_levels: List[object] = []
+        current_line_nodes: List[TreeNode] = [self.__root]
         while any(current_line_nodes):
             next_line_nodes: List[TreeNode] = []
+            value_level: List[object] = []
             for node in current_line_nodes:
+
                 if node is None:
-                    result.append(None)
+                    value_level.append(None)
                     next_line_nodes += [None, None]
                     continue
-                check_node(node)
-                result.append(node.val)
+                BinaryTree.is_valid_node(node)
+                value_level.append(node.val)
                 next_line_nodes += [node.left, node.right]
+            value_levels.append(value_level)
             current_line_nodes = next_line_nodes
-        return result
+        return value_levels
 
     @staticmethod
     def __to_tree_node_view__(array_view: List[object]) -> [TreeNode | None]:
@@ -171,6 +182,52 @@ class BinaryTree:
 
     def __repr__(self):
         return str(self)
+
+    def height(self) -> int:
+        """Return height of binary tree, number of levels below the root.
+
+        A binary tree's height is the number of nodes along the longest
+        path from the root node down to the farthest leaf node. """
+        maximum = 0
+
+        def go(next_node: TreeNode, cur_depth: int):
+            if not next_node.left and not next_node.right:
+                cur_depth += 1
+                nonlocal maximum
+                maximum = max(maximum, cur_depth)
+            if next_node.left:
+                go(next_node.left, cur_depth + 1)
+            if next_node.right:
+                go(next_node.right, cur_depth + 1)
+
+        go(self.__root, 0)
+        return maximum
+
+    def is_height_balanced(self):
+        is_balanced = True
+
+        def go(node: TreeNode) -> int:
+            """Return height of tree."""
+            nonlocal is_balanced
+            if not is_balanced:
+                return 0
+            height_left_subtree = 0
+            height_right_subtree = 0
+            if not node.left and not node.right:
+                return 1
+            if node.left:
+                height_left_subtree = go(node.left)
+            if node.right:
+                height_right_subtree = go(node.right)
+            if abs(height_left_subtree - height_right_subtree) > 1:
+                is_balanced = False
+            return max(height_left_subtree, height_right_subtree) + 1
+
+        go(self.__root)
+        return is_balanced
+
+    def width(self):
+        pass
 
     def __str__(self):
         return str(self.__to_array_view__(self.__root))
