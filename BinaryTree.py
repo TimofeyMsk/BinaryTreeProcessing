@@ -70,6 +70,26 @@ class BinaryTree:
         :raises: TypeError if root or other node is not instance TreeNode class.
         """
 
+    def to_array_view(self):
+        u"""Convert binary tree to array view.
+
+        Inputed tree will be supplement to full tree with None-nodes. Nodes values
+        will be enumerated in array line by line.\n
+        ...........1.............[1]\n
+        ........./...\\\\............+\n
+        ........2....3........[2, 3]\n
+        ......./..\\\\................+\n
+        .....4....5............[4, 5, None, None]\n
+        .............\\\\..............+\n
+        ..............6..........[None, None, None, 6, None, None, None, None]\n
+        This tree will be convert to [1, 2, 3, 4, 5, None, None, None, None, None, 6, None, None, None, None]
+
+        :return: array view of tree, defaults to [].
+        :rtype: List[object]
+        :raises: ValueError if node.val is None.
+        :raises: TypeError if root or other node is not instance TreeNode class.
+        """
+        return BinaryTree.__to_array_view__(self.__root)
 
     @staticmethod
     def is_valid_node(node_: TreeNode):
@@ -204,6 +224,10 @@ class BinaryTree:
         return maximum
 
     def is_height_balanced(self):
+        """Return true if tree is balanced by height.
+
+        A binary tree in which the left and right subtrees of
+        *every node* differ in height by no more than 1."""
         is_balanced = True
 
         def go(node: TreeNode) -> int:
@@ -227,7 +251,21 @@ class BinaryTree:
         return is_balanced
 
     def width(self):
-        pass
+        """Return maximum width of tree through all levels.
+
+        The width of one level is defined as the length between
+        the end-nodes (the leftmost and rightmost non-null nodes),
+        where the null nodes between the end-nodes are also
+        counted into the length calculation.
+        """
+        levels = self.to_levels()
+        max_width: int = None
+        for level in levels:
+            first_not_none: int = None
+            last_not_none: int = None
+            for i, val in enumerate(level):
+                if first_not_none is None and val is not None:
+                    first_not_none = i
 
     def __str__(self):
         return str(self.__to_array_view__(self.__root))
