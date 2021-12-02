@@ -39,16 +39,28 @@ class BinaryTree:
         if value is None:
             raise ValueError("Can not create binary tree from None.")
         elif isinstance(value, TreeNode):
+            BinaryTree.check_node(value)
             self.__root = value
         elif isinstance(value, List):
             self.__root: TreeNode = BinaryTree.__to_tree_node_view__(value)
+        else:
+            raise (TypeError, "Can't create binary tree from this data type.")
 
     def get_root(self) -> TreeNode:
         """Return root node."""
         return self.__root
 
     @staticmethod
-    def __to_array_view__(root: TreeNode) -> List[object]:
+    def check_node(node_: TreeNode):
+        """Raises errors if value is not allowed."""
+        if not isinstance(node_, TreeNode):
+            raise TypeError('Nodes in tree must be TreeNode instances.')
+        if node_.val is None:
+            raise ValueError('Node.val must not be None')
+
+    @staticmethod
+    def __to_array_view__(root: TreeNode, add_none_tail: bool = False)\
+            -> List[object]:
         u"""Convert binary tree to array view.
 
         Inputed tree will be supplement to full tree with None-nodes. Nodes values
@@ -60,20 +72,49 @@ class BinaryTree:
         .....4....5............[4, 5, None, None]\n
         .............\\\\..............+\n
         ..............6..........[None, None, None, 6, None, None, None, None]\n
-        This tree will be convert to [1, 2, 3, 4, 5, None, None, None, None, None, 6, None, None, None, None]
+        This tree will be convert to: \n
+         * with add_none_tail = True: [1, 2, 3, 4, 5, None, None, None, None, None, 6, None, None, None, None] \n
+         * with add_none_tail = False: [1, 2, 3, 4, 5, None, None, None, None, None, 6]
 
         :param root: root of tree to convert.
         :type root: TreeNode
+        :type add_none_tail: bool
+        :param add_none_tail: complete last level by Nones to proper item count.
         :return: array view of tree, defaults to [].
         :rtype: List[object]
         :raises: ValueError if node.val is None.
         :raises: TypeError if root or other node is not instance TreeNode class.
         """
+        if root is None:
+            return []
+        BinaryTree.check_node(root)
+        result: List[object] = []
+        current_line_nodes: List[TreeNode] = [root]
+        while any(current_line_nodes):
+            next_line_nodes: List[TreeNode] = []
+            for node in current_line_nodes:
+                if node is None:
+                    result.append(None)
+                    next_line_nodes += [None, None]
+                    continue
+                BinaryTree.check_node(node)
+                result.append(node.val)
+                next_line_nodes += [node.left, node.right]
+            current_line_nodes = next_line_nodes
+        if not add_none_tail:
+            for i in range(len(result)):
+                val = result.pop()
+                if val is None:
+                    continue
+                else:
+                    result.append(val)
+                    break
+        return result
 
-    def to_array_view(self):
+    def to_array_view(self, add_none_tail: bool = False):
         u"""Convert binary tree to array view.
 
-        Inputed tree will be supplement to full tree with None-nodes. Nodes values
+        Inputted tree will be supplement to full tree with None-nodes. Nodes values
         will be enumerated in array line by line.\n
         ...........1.............[1]\n
         ........./...\\\\............+\n
@@ -82,14 +123,18 @@ class BinaryTree:
         .....4....5............[4, 5, None, None]\n
         .............\\\\..............+\n
         ..............6..........[None, None, None, 6, None, None, None, None]\n
-        This tree will be convert to [1, 2, 3, 4, 5, None, None, None, None, None, 6, None, None, None, None]
+        This tree will be convert to: \n
+         * with add_none_tail = True: [1, 2, 3, 4, 5, None, None, None, None, None, 6, None, None, None, None] \n
+         * with add_none_tail = False: [1, 2, 3, 4, 5, None, None, None, None, None, 6]
 
+        :type add_none_tail: bool
+        :param add_none_tail: complete last level by Nones to proper item count.
         :return: array view of tree, defaults to [].
         :rtype: List[object]
         :raises: ValueError if node.val is None.
         :raises: TypeError if root or other node is not instance TreeNode class.
         """
-        return BinaryTree.__to_array_view__(self.__root)
+        return BinaryTree.__to_array_view__(self.__root, add_none_tail)
 
     @staticmethod
     def is_valid_node(node_: TreeNode):
@@ -122,45 +167,56 @@ class BinaryTree:
         return value_levels
 
     @staticmethod
-    def __to_tree_node_view__(array_view: List[object]) -> [TreeNode | None]:
+    def __to_tree_node_view__(array_view: List[object]) -> [TreeNode]:
         """Return root of tree presented as linked set of TreeNode instances.
 
         :param array_view: tree in array view
         :return root: root of tree as TreeNode instance
         :rtype: TreeNode"""
-
         if array_view is None:
-            return None
+            raise ValueError("Can't create BinaryTree from None.")
         if not isinstance(array_view, List):
             raise TypeError('Argument array_view must be List[object].')
         if len(array_view) == 0:
-            return None
-        # Check count of items
+            raise ValueError("Can't create empty BinaryTree.")
+        # Check count of items. Complete by None-tail to proper count of items (full tree view).
+        # Evaluate count of levels.
         length = len(array_view)
-        line_count = 0
-        cur_sum = 0
-        while length != cur_sum:
-            line_count += 1
-            cur_sum += 2 ** (line_count - 1)
-            if cur_sum > length:
-                raise ValueError('Correct argument array_view must have '
-                                 'length equal sum of 2**i where i from 0 to some whole number')
-
+        levels_count = 0
+        supposed_item_count = 0
+        while length != supposed_item_count:
+            levels_count += 1
+            supposed_item_count += 2 ** (levels_count - 1)
+            if supposed_item_count > length:
+                array_view.extend([None for i in range(supposed_item_count - length)])
+                break
         # Split by tree lines
-        lines: List[List[object]] = [array_view[2 ** s - 1: 2 * (2 ** s - 1) + 1]
-                                     for s in range(1, line_count)]
+        tree_levels: List[List[object]] = [
+            array_view[2 ** s - 1: 2 * (2 ** s - 1) + 1]
+            for s in range(1, levels_count)
+        ]
+        for level_values in tree_levels:
+            if not any(level_values) or len(level_values) == 0:
+                raise ValueError("Tree can't contain an empty level or level with None's only.")
         root: TreeNode = TreeNode(array_view[0])
         prev_tn_line: List[TreeNode] = [root]
-        for line in lines:
+        for level_values in tree_levels:
             current_item_i = 0
             new_tn_line: List[TreeNode] = []
             for ptn in prev_tn_line:
                 if ptn is None:
                     new_tn_line += [None, None]
+                    if not (level_values[current_item_i] is None
+                            and level_values[current_item_i + 1] is None):
+                        isolated_node_val = level_values[current_item_i] \
+                            if level_values[current_item_i] is not None \
+                            else level_values[current_item_i + 1]
+                        raise ValueError("A isolated node was found in the array_view. " +
+                                         f"Isolated node value is {isolated_node_val!r}")
                     current_item_i += 2
                     continue
-                left_item = line[current_item_i]
-                right_item = line[current_item_i + 1]
+                left_item = level_values[current_item_i]
+                right_item = level_values[current_item_i + 1]
                 ptn.left = None if left_item is None else TreeNode(left_item)
                 ptn.right = None if right_item is None else TreeNode(right_item)
                 current_item_i += 2
@@ -199,9 +255,6 @@ class BinaryTree:
 
         node_processing(self.__root)
         return max_way_length
-
-    def __repr__(self):
-        return str(self)
 
     def height(self) -> int:
         """Return height of binary tree, number of levels below the root.
@@ -258,14 +311,22 @@ class BinaryTree:
         where the null nodes between the end-nodes are also
         counted into the length calculation.
         """
-        levels = self.to_levels()
-        max_width: int = None
-        for level in levels:
-            first_not_none: int = None
-            last_not_none: int = None
-            for i, val in enumerate(level):
-                if first_not_none is None and val is not None:
-                    first_not_none = i
+        levels: List[List[object]] = self.to_levels()
+        max_width: int = -1
+        for level_values in levels:
+            first_not_none_ind: int = -100
+            last_not_none_ind: int = -100
+            level_true_false = [
+                True if val is not None else False
+                for val in level_values
+            ]
+            first_not_none_ind = level_true_false.index(True)
+            last_not_none_ind = len(level_true_false) - level_true_false[::-1].index(True) - 1
+            max_width = max(max_width, last_not_none_ind - first_not_none_ind + 1)
+        return max_width
+
+    def __repr__(self):
+        return str(self)
 
     def __str__(self):
         return str(self.__to_array_view__(self.__root))
