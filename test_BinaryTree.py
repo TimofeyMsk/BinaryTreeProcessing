@@ -53,8 +53,8 @@ class TestBinTreeProcessing(TestCase):
     def test_to_tree_node_view(self):
         n1_bt_generated = BinaryTree(self.n1_array_with_none_tail)
         n1_array_generated = \
-            BinaryTree.__to_array_view__(n1_bt_generated.get_root()
-                                         , add_none_tail=True)
+            BinaryTree.__to_array_view__(n1_bt_generated.get_root(),
+                                         add_none_tail=True)
         self.assertEqual(self.n1_array_with_none_tail, n1_array_generated,
                          "Incorrect convert from array view to tree_node view.")
 
@@ -138,9 +138,42 @@ class TestBinTreeProcessing(TestCase):
         a1_mirrored_arr = [4]
         self.assertEqual(a1_mirrored_arr,
                          a1_bt.to_array_view(), "Incorrect mirroring.")
-        b1_arr = [4,1, None, None, 3]
+        b1_arr = [4, 1, None, None, 3]
         b1_bt = BinaryTree(b1_arr)
         b1_bt.mirror()
         b1_mirrored_arr = [4, None, 1, None, None, 3]
         self.assertEqual(b1_mirrored_arr,
                          b1_bt.to_array_view(), "Incorrect mirroring.")
+
+    def test_traverse_inorder(self):
+        self.assertEqual([4, 2, 6, 5, 8, 7, 1, 3, 9],
+                         BinaryTree(self.n1).traverse_inorder())
+        self.assertEqual([2, 4, 1, 5, 3, 6],
+                         BinaryTree([1, 2, 3] + [None, 4, 5, 6])
+                         .traverse_inorder())
+        self.assertEqual([2, 1],
+                         BinaryTree([1, 2]).traverse_inorder())
+        self.assertEqual([1, 2],
+                         BinaryTree([1, None, 2]).traverse_inorder())
+        self.assertEqual([1],
+                         BinaryTree([1]).traverse_inorder())
+
+    def test_traverse_preorder(self):
+        self.assertEqual([1, 2, 4, 5, 6, 7, 8, 3, 9],
+                         BinaryTree(self.n1).traverse_preorder())
+        self.assertEqual([1, 2],
+                         BinaryTree([1, 2]).traverse_preorder())
+        self.assertEqual([1, 2],
+                         BinaryTree([1, None, 2]).traverse_preorder())
+        self.assertEqual([1],
+                         BinaryTree([1]).traverse_preorder())
+
+    def test_traverse_postorder(self):
+        self.assertEqual([4, 6, 8, 7, 5, 2, 9, 3, 1],
+                         BinaryTree(self.n1).traverse_postorder())
+        self.assertEqual([2, 1],
+                         BinaryTree([1, 2]).traverse_postorder())
+        self.assertEqual([2, 1],
+                         BinaryTree([1, None, 2]).traverse_postorder())
+        self.assertEqual([1],
+                         BinaryTree([1]).traverse_postorder())

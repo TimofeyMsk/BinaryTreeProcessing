@@ -59,7 +59,7 @@ class BinaryTree:
             raise ValueError('Node.val must not be None')
 
     @staticmethod
-    def __to_array_view__(root: TreeNode, add_none_tail: bool = False)\
+    def __to_array_view__(root: TreeNode, add_none_tail: bool = False) \
             -> List[object]:
         u"""Convert binary tree to array view.
 
@@ -143,12 +143,12 @@ class BinaryTree:
         if node_.val is None:
             raise ValueError('Node.val must not be None')
 
-    def to_levels(self):
-        """Return tree node values by levels"""
+    def to_levels(self) -> List[List[object]]:
+        """Return tree node values by levels from root to leaves."""
         if self.__root is None:
             return []
         BinaryTree.is_valid_node(self.__root)
-        value_levels: List[object] = []
+        levels: List[List[object]] = []
         current_line_nodes: List[TreeNode] = [self.__root]
         while any(current_line_nodes):
             next_line_nodes: List[TreeNode] = []
@@ -162,9 +162,9 @@ class BinaryTree:
                 BinaryTree.is_valid_node(node)
                 value_level.append(node.val)
                 next_line_nodes += [node.left, node.right]
-            value_levels.append(value_level)
+            levels.append(value_level)
             current_line_nodes = next_line_nodes
-        return value_levels
+        return levels
 
     @staticmethod
     def __to_tree_node_view__(array_view: List[object]) -> [TreeNode]:
@@ -188,7 +188,8 @@ class BinaryTree:
             levels_count += 1
             supposed_item_count += 2 ** (levels_count - 1)
             if supposed_item_count > length:
-                array_view.extend([None for i in range(supposed_item_count - length)])
+                array_view.extend(
+                    [None for i in range(supposed_item_count - length)])
                 break
         # Split by tree lines
         tree_levels: List[List[object]] = [
@@ -197,7 +198,8 @@ class BinaryTree:
         ]
         for level_values in tree_levels:
             if not any(level_values) or len(level_values) == 0:
-                raise ValueError("Tree can't contain an empty level or level with None's only.")
+                raise ValueError(
+                    "Tree can't contain an empty level or level with None's only.")
         root: TreeNode = TreeNode(array_view[0])
         prev_tn_line: List[TreeNode] = [root]
         for level_values in tree_levels:
@@ -211,8 +213,9 @@ class BinaryTree:
                         isolated_node_val = level_values[current_item_i] \
                             if level_values[current_item_i] is not None \
                             else level_values[current_item_i + 1]
-                        raise ValueError("A isolated node was found in the array_view. " +
-                                         f"Isolated node value is {isolated_node_val!r}")
+                        raise ValueError(
+                            "A isolated node was found in the array_view. " +
+                            f"Isolated node value is {isolated_node_val!r}")
                     current_item_i += 2
                     continue
                 left_item = level_values[current_item_i]
@@ -245,7 +248,8 @@ class BinaryTree:
                 l_w_l, l_b_l = node_processing(node.left)
             if node.right:
                 l_w_r, l_b_r = node_processing(node.right)
-            longest_way = ((l_b_l + 1) if node.left else 0) + ((l_b_r + 1) if node.right else 0)
+            longest_way = ((l_b_l + 1) if node.left else 0) + (
+                (l_b_r + 1) if node.right else 0)
             # print("longest_way", longest_way)
             # print("Solution.max_way_length", max_way_length)
             max_way_length = max(max_way_length, longest_way)
@@ -276,7 +280,7 @@ class BinaryTree:
         go(self.__root, 0)
         return maximum
 
-    def is_height_balanced(self)-> bool:
+    def is_height_balanced(self) -> bool:
         """Return true if tree is balanced by height.
 
         A binary tree in which the left and right subtrees of
@@ -322,8 +326,10 @@ class BinaryTree:
                 for val in level_values
             ]
             first_not_none_ind = level_true_false.index(True)
-            last_not_none_ind = len(level_true_false) - level_true_false[::-1].index(True) - 1
-            max_width = max(max_width, last_not_none_ind - first_not_none_ind + 1)
+            last_not_none_ind = len(level_true_false) - level_true_false[
+                                                        ::-1].index(True) - 1
+            max_width = max(max_width,
+                            last_not_none_ind - first_not_none_ind + 1)
         return max_width
 
     def mirror(self) -> None:
@@ -339,6 +345,49 @@ class BinaryTree:
             go(root.right)
 
         go(self.__root)
+
+    def traverse_inorder(self) -> List[object]:
+        """Return the inorder traversal of its nodes' values."""
+        result: List[object] = []
+
+        def go(root: TreeNode) -> None:
+            if root is None:
+                return
+            go(root.left)
+            nonlocal result
+            result.append(root.val)
+            go(root.right)
+
+        go(self.__root)
+        return result
+
+    def traverse_preorder(self) -> List[object]:
+        """Return the preorder traversal of its nodes' values."""
+        result = []
+
+        def go(node):
+            if node is None:
+                return
+            result.append(node.val)
+            go(node.left)
+            go(node.right)
+
+        go(self.__root)
+        return result
+
+    def traverse_postorder(self) -> List[object]:
+        """Return the preorder traversal of its nodes' values."""
+        result = []
+
+        def go(node):
+            if node is None:
+                return
+            go(node.left)
+            go(node.right)
+            result.append(node.val)
+
+        go(self.__root)
+        return result
 
     def __repr__(self):
         return str(self)
