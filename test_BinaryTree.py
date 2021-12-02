@@ -124,3 +124,23 @@ class TestBinTreeProcessing(TestCase):
         self.assertEqual(1, BinaryTree([0, 1, None, 2, None, None, None] +
                                        [None, 2, None, None, None, None, None,
                                         None]).width())
+
+    def test_mirror(self):
+        t1_arr = [4, 2, 7, 1, 3, 6, 9]
+        t1_bt = BinaryTree(t1_arr)
+        t1_bt.mirror()
+        t1_mirrored_arr = [4, 7, 2, 9, 6, 3, 1]
+        self.assertEqual(t1_mirrored_arr,
+                         t1_bt.to_array_view(), "Incorrect mirroring.")
+        a1_arr = [4]
+        a1_bt = BinaryTree(a1_arr)
+        a1_bt.mirror()
+        a1_mirrored_arr = [4]
+        self.assertEqual(a1_mirrored_arr,
+                         a1_bt.to_array_view(), "Incorrect mirroring.")
+        b1_arr = [4,1, None, None, 3]
+        b1_bt = BinaryTree(b1_arr)
+        b1_bt.mirror()
+        b1_mirrored_arr = [4, None, 1, None, None, 3]
+        self.assertEqual(b1_mirrored_arr,
+                         b1_bt.to_array_view(), "Incorrect mirroring.")

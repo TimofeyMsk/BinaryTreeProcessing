@@ -276,7 +276,7 @@ class BinaryTree:
         go(self.__root, 0)
         return maximum
 
-    def is_height_balanced(self):
+    def is_height_balanced(self)-> bool:
         """Return true if tree is balanced by height.
 
         A binary tree in which the left and right subtrees of
@@ -303,13 +303,14 @@ class BinaryTree:
         go(self.__root)
         return is_balanced
 
-    def width(self):
+    def width(self) -> int:
         """Return maximum width of tree through all levels.
 
         The width of one level is defined as the length between
         the end-nodes (the leftmost and rightmost non-null nodes),
         where the null nodes between the end-nodes are also
         counted into the length calculation.
+        :rtype: int
         """
         levels: List[List[object]] = self.to_levels()
         max_width: int = -1
@@ -324,6 +325,20 @@ class BinaryTree:
             last_not_none_ind = len(level_true_false) - level_true_false[::-1].index(True) - 1
             max_width = max(max_width, last_not_none_ind - first_not_none_ind + 1)
         return max_width
+
+    def mirror(self) -> None:
+        """Reflect tree in mirror IN PLACE.
+
+        Swap the left and right child  at each node.  """
+
+        def go(root: TreeNode):
+            if root is None:
+                return
+            root.left, root.right = root.right, root.left
+            go(root.left)
+            go(root.right)
+
+        go(self.__root)
 
     def __repr__(self):
         return str(self)
